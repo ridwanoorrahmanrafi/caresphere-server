@@ -1,5 +1,13 @@
 import { MongoClient, ServerApiVersion } from "mongodb";
 import dotenv from "dotenv";
+import dns from "node:dns";
+
+// Fix for Windows ISP DNS blocking MongoDB SRV queries
+try {
+  dns.setServers(["8.8.8.8", "1.1.1.1"]);
+} catch (e) {
+  // Ignore if not permitted
+}
 
 dotenv.config();
 
