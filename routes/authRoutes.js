@@ -171,12 +171,14 @@ router.post("/google", async (req, res) => {
       };
       const result = await usersCollection.insertOne(newUser);
       user = { ...newUser, _id: result.insertedId };
-    } else if (photoURL && !user.photoURL) {
-      await usersCollection.updateOne(
-        { _id: user._id },
-        { $set: { photoURL } }
-      );
-      user.photoURL = photoURL;
+    } else {
+      const updates = {};
+      if (name && (!user.name || user.name === "Volunteer")) updates.name = name;
+      if (photoURL && !user.photoURL) updates.photoURL = photoURL;
+      if (Object.keys(updates).length > 0) {
+        await usersCollection.updateOne({ _id: user._id }, { $set: updates });
+        user = { ...user, ...updates };
+      }
     }
 
     const safeUser = {
