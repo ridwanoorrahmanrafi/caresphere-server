@@ -43,6 +43,20 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+// Auto-ensure MongoDB Atlas DB connection for all incoming requests (mounted before all routes)
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error("Database connection error:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Database connection failed: " + err.message,
+    });
+  }
+});
+
 // Health Check / Root route
 app.get("/", (req, res) => {
   res.json({
@@ -90,20 +104,6 @@ app.use((err, req, res, next) => {
     success: false,
     message: err.message || "Internal Server Error",
   });
-});
-
-// Auto-ensure MongoDB Atlas DB connection for all incoming requests
-app.use(async (req, res, next) => {
-  try {
-    await connectDB();
-    next();
-  } catch (err) {
-    console.error("Database connection error:", err.message);
-    return res.status(500).json({
-      success: false,
-      message: "Database connection failed: " + err.message,
-    });
-  }
 });
 
 // Start Server for persistent runtimes (Render, Local)

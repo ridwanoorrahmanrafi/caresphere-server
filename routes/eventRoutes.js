@@ -70,7 +70,7 @@ router.get("/upcoming", async (req, res) => {
     console.error("Fetch upcoming events error:", error);
     return res.status(500).json({
       success: false,
-      message: "Failed to retrieve upcoming events.",
+      message: "Failed to retrieve upcoming events: " + error.message,
     });
   }
 });
