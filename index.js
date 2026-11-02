@@ -92,7 +92,17 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start Server and Connect DB
+// Auto-ensure DB connection for serverless invocations (Vercel)
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+  } catch (err) {
+    console.warn("Serverless DB connection check:", err.message);
+  }
+  next();
+});
+
+// Start Server for persistent runtimes (Render, Local)
 async function startServer() {
   try {
     await connectDB();
@@ -108,4 +118,8 @@ async function startServer() {
   }
 }
 
-startServer();
+if (!process.env.VERCEL) {
+  startServer();
+}
+
+export default app;

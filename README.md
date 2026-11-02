@@ -1,5 +1,8 @@
 # CareSphere Server API - Social Development Events Platform
 
+> **Live Server API URL:** [https://caresphere-server.vercel.app](https://caresphere-server.vercel.app)
+> **Live Client Application:** [https://caresphere-client.vercel.app](https://caresphere-client.vercel.app)
+
 Backend REST API for CareSphere, handling user authentication, MongoDB persistence, JWT authorization, and community event CRUD operations.
 
 ---
