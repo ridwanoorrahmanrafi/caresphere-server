@@ -92,28 +92,31 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Auto-ensure DB connection for serverless invocations (Vercel)
+// Auto-ensure MongoDB Atlas DB connection for all incoming requests
 app.use(async (req, res, next) => {
   try {
     await connectDB();
+    next();
   } catch (err) {
-    console.warn("Serverless DB connection check:", err.message);
+    console.error("Database connection error:", err.message);
+    return res.status(500).json({
+      success: false,
+      message: "Database connection failed: " + err.message,
+    });
   }
-  next();
 });
 
 // Start Server for persistent runtimes (Render, Local)
 async function startServer() {
   try {
     await connectDB();
-    await seedDatabaseIfEmpty();
     app.listen(PORT, () => {
       console.log(`🌐 Server running and listening on http://localhost:${PORT}`);
     });
   } catch (error) {
-    console.warn("⚠️ Server started without active MongoDB connection (waiting for connection string):", error.message);
+    console.error("⚠️ Server startup error:", error.message);
     app.listen(PORT, () => {
-      console.log(`🌐 Server running in fallback mode on http://localhost:${PORT}`);
+      console.log(`🌐 Server running on http://localhost:${PORT}`);
     });
   }
 }
