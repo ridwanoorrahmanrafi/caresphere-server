@@ -20,6 +20,7 @@ if (process.platform === "win32") {
 let client = null;
 let db = null;
 let isConnected = false;
+let clientPromise = null;
 
 export async function connectDB() {
   if (db && isConnected) return db;
@@ -30,36 +31,29 @@ export async function connectDB() {
   }
 
   try {
-    client = new MongoClient(uri, {
-      serverSelectionTimeoutMS: 8000,
-      serverApi: {
-        version: ServerApiVersion.v1,
-        strict: true,
-        deprecationErrors: true,
-      },
-    });
+    if (!clientPromise) {
+      client = new MongoClient(uri, {
+        maxPoolSize: 10,
+        serverSelectionTimeoutMS: 8000,
+        serverApi: {
+          version: ServerApiVersion.v1,
+          strict: true,
+          deprecationErrors: true,
+        },
+      });
+      clientPromise = client.connect();
+    }
 
-    await client.connect();
+    await clientPromise;
     db = client.db("caresphere");
     isConnected = true;
     console.log("✅ Connected successfully to MongoDB Atlas database 'caresphere'!");
 
-    // Ensure collections and indexes exist
-    try {
-      const eventsCollection = db.collection("events");
-      await eventsCollection.createIndex({ eventDate: 1 });
-      const joinedCollection = db.collection("joined_events");
-      await joinedCollection.createIndex({ eventId: 1, userEmail: 1 });
-      const usersCollection = db.collection("users");
-      await usersCollection.createIndex({ email: 1 });
-    } catch (idxErr) {
-      console.warn("MongoDB Index note:", idxErr.message);
-    }
-
     return db;
   } catch (error) {
-    console.error("❌ MongoDB Atlas connection error:", error.message);
+    clientPromise = null;
     isConnected = false;
+    console.error("❌ MongoDB Atlas connection error:", error.message);
     throw error;
   }
 }
