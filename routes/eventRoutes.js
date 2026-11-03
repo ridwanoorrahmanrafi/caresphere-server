@@ -178,6 +178,8 @@ router.get("/:id", optionalAuth, async (req, res) => {
       event: {
         ...event,
         _id: event._id.toString(),
+        attendeesCount: attendees.length,
+        attendees,
       },
       attendeesCount: attendees.length,
       attendees,
@@ -441,10 +443,18 @@ router.post("/:id/join", verifyAuth, async (req, res) => {
     };
 
     await joinedCollection.insertOne(joinRecord);
+    const updatedCount = await joinedCollection.countDocuments({ eventId: id });
 
     return res.status(201).json({
       success: true,
       message: "Awesome! You have successfully joined this event as a volunteer.",
+      attendeesCount: updatedCount,
+      attendee: {
+        userName: joinRecord.userName,
+        userEmail: joinRecord.userEmail,
+        userPhoto: joinRecord.userPhoto,
+        joinedAt: joinRecord.joinedAt,
+      },
       joinRecord: {
         ...joinRecord,
         _id: joinRecord._id.toString(),
@@ -478,9 +488,12 @@ router.delete("/:id/leave", verifyAuth, async (req, res) => {
       });
     }
 
+    const updatedCount = await joinedCollection.countDocuments({ eventId: id });
+
     return res.status(200).json({
       success: true,
       message: "You have successfully canceled your RSVP for this event.",
+      attendeesCount: updatedCount,
     });
   } catch (error) {
     console.error("Leave event error:", error);
